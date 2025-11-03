@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -25,7 +24,7 @@ func validatePort(value interface{}) bool {
 
 // Основная функция проверки YAML
 func validateYAML(filename string) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename) // ✅ заменили ioutil.ReadFile
 	if err != nil {
 		fmt.Printf("%s: unable to read file: %v\n", filename, err)
 		return
