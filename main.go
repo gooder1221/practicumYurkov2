@@ -23,7 +23,7 @@ func validatePort(value interface{}) bool {
 	}
 }
 
-// Основная функция валидации YAML
+// Основная функция проверки YAML
 func validateYAML(filename string) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -39,15 +39,16 @@ func validateYAML(filename string) {
 
 	base := filepath.Base(filename)
 
-	// --- Проверка metadata.name ---
+	// --- metadata.name ---
 	if metadata, ok := raw["metadata"].(map[string]interface{}); ok {
 		if name, ok := metadata["name"].(string); !ok || name == "" {
 			fmt.Printf("%s:4 name is required\n", base)
 		}
 	}
 
-	// --- Проверка spec.os ---
+	// --- spec ---
 	if spec, ok := raw["spec"].(map[string]interface{}); ok {
+		// --- spec.os ---
 		if osField, ok := spec["os"]; ok {
 			if osName, ok := osField.(string); ok {
 				if osName != "linux" && osName != "windows" {
@@ -56,7 +57,7 @@ func validateYAML(filename string) {
 			}
 		}
 
-		// --- Проверка containers ---
+		// --- spec.containers ---
 		if containers, ok := spec["containers"].([]interface{}); ok {
 			for _, c := range containers {
 				container, ok := c.(map[string]interface{})
@@ -64,7 +65,12 @@ func validateYAML(filename string) {
 					continue
 				}
 
-				// --- Проверка ports[].containerPort ---
+				// --- container.name ---
+				if name, ok := container["name"].(string); !ok || name == "" {
+					fmt.Printf("%s:12 name is required\n", base)
+				}
+
+				// --- container.ports[].containerPort ---
 				if ports, ok := container["ports"].([]interface{}); ok {
 					for _, p := range ports {
 						if portObj, ok := p.(map[string]interface{}); ok {
@@ -77,7 +83,7 @@ func validateYAML(filename string) {
 					}
 				}
 
-				// --- Проверка livenessProbe.httpGet.port ---
+				// --- livenessProbe.httpGet.port ---
 				if probe, ok := container["livenessProbe"].(map[string]interface{}); ok {
 					if httpGet, ok := probe["httpGet"].(map[string]interface{}); ok {
 						if port, ok := httpGet["port"]; ok {
@@ -88,13 +94,13 @@ func validateYAML(filename string) {
 					}
 				}
 
-				// --- Проверка resources.requests.cpu ---
+				// --- resources.requests.cpu ---
 				if resources, ok := container["resources"].(map[string]interface{}); ok {
 					if requests, ok := resources["requests"].(map[string]interface{}); ok {
 						if cpu, ok := requests["cpu"]; ok {
 							switch cpu.(type) {
 							case int, int64, float64:
-								// корректно
+								// OK
 							default:
 								fmt.Printf("%s:30 cpu must be int\n", base)
 							}
