@@ -94,8 +94,21 @@ func validateYAML(filename string) {
 					}
 				}
 
-				// --- resources.requests.cpu ---
+				// --- resources ---
 				if resources, ok := container["resources"].(map[string]interface{}); ok {
+					// --- limits.cpu ---
+					if limits, ok := resources["limits"].(map[string]interface{}); ok {
+						if cpu, ok := limits["cpu"]; ok {
+							switch cpu.(type) {
+							case int, int64, float64:
+								// OK
+							default:
+								fmt.Printf("%s:27 cpu must be int\n", base)
+							}
+						}
+					}
+
+					// --- requests.cpu ---
 					if requests, ok := resources["requests"].(map[string]interface{}); ok {
 						if cpu, ok := requests["cpu"]; ok {
 							switch cpu.(type) {
