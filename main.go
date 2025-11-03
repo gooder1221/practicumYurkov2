@@ -37,10 +37,16 @@ func validateYAML(filename string) {
 
 	base := filepath.Base(filename)
 
-	// --- Проверка OS ---
+	// --- Проверка metadata.name ---
+	if metadata, ok := raw["metadata"].(map[string]interface{}); ok {
+		if name, ok := metadata["name"].(string); !ok || name == "" {
+			fmt.Printf("%s:4 name is required\n", base)
+		}
+	}
+
+	// --- Проверка spec.os ---
 	if spec, ok := raw["spec"].(map[string]interface{}); ok {
 		if osField, ok := spec["os"]; ok {
-			// os может быть строкой, например: "linux" или "windows"
 			if osName, ok := osField.(string); ok {
 				if osName != "linux" && osName != "windows" {
 					fmt.Printf("%s:10 os has unsupported value '%s'\n", base, osName)
@@ -56,7 +62,7 @@ func validateYAML(filename string) {
 					continue
 				}
 
-				// Проверка livenessProbe.httpGet.port (из прошлого теста)
+				// Проверка livenessProbe.httpGet.port
 				if probe, ok := container["livenessProbe"].(map[string]interface{}); ok {
 					if httpGet, ok := probe["httpGet"].(map[string]interface{}); ok {
 						if port, ok := httpGet["port"]; ok {
@@ -73,23 +79,6 @@ func validateYAML(filename string) {
 						if cpu, ok := requests["cpu"]; ok {
 							switch cpu.(type) {
 							case int, int64, float64:
-								// ок
+								// всё хорошо
 							default:
-								fmt.Printf("%s:30 cpu must be int\n", base)
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Usage: yamlvalid <filename>")
-		return
-	}
-	filename := os.Args[1]
-	validateYAML(filename)
-}
+								fmt.Printf("%s:30 cpu must be int\n",
