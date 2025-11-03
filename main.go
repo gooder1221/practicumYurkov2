@@ -64,7 +64,20 @@ func validateYAML(filename string) {
 					continue
 				}
 
-				// Проверка livenessProbe.httpGet.port
+				// --- Проверка ports[].containerPort ---
+				if ports, ok := container["ports"].([]interface{}); ok {
+					for _, p := range ports {
+						if portObj, ok := p.(map[string]interface{}); ok {
+							if port, ok := portObj["containerPort"]; ok {
+								if !validatePort(port) {
+									fmt.Printf("%s:15 containerPort value out of range\n", base)
+								}
+							}
+						}
+					}
+				}
+
+				// --- Проверка livenessProbe.httpGet.port ---
 				if probe, ok := container["livenessProbe"].(map[string]interface{}); ok {
 					if httpGet, ok := probe["httpGet"].(map[string]interface{}); ok {
 						if port, ok := httpGet["port"]; ok {
@@ -75,13 +88,13 @@ func validateYAML(filename string) {
 					}
 				}
 
-				// Проверка resources.requests.cpu
+				// --- Проверка resources.requests.cpu ---
 				if resources, ok := container["resources"].(map[string]interface{}); ok {
 					if requests, ok := resources["requests"].(map[string]interface{}); ok {
 						if cpu, ok := requests["cpu"]; ok {
 							switch cpu.(type) {
 							case int, int64, float64:
-								// всё хорошо
+								// корректно
 							default:
 								fmt.Printf("%s:30 cpu must be int\n", base)
 							}
