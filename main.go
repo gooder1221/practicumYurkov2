@@ -9,6 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Проверка диапазона порта
 func validatePort(value interface{}) bool {
 	switch v := value.(type) {
 	case int:
@@ -22,6 +23,7 @@ func validatePort(value interface{}) bool {
 	}
 }
 
+// Основная функция валидации YAML
 func validateYAML(filename string) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,7 +56,7 @@ func validateYAML(filename string) {
 			}
 		}
 
-		// --- Проверка контейнеров ---
+		// --- Проверка containers ---
 		if containers, ok := spec["containers"].([]interface{}); ok {
 			for _, c := range containers {
 				container, ok := c.(map[string]interface{})
@@ -73,7 +75,7 @@ func validateYAML(filename string) {
 					}
 				}
 
-				// --- Проверка resources.requests.cpu ---
+				// Проверка resources.requests.cpu
 				if resources, ok := container["resources"].(map[string]interface{}); ok {
 					if requests, ok := resources["requests"].(map[string]interface{}); ok {
 						if cpu, ok := requests["cpu"]; ok {
@@ -81,4 +83,21 @@ func validateYAML(filename string) {
 							case int, int64, float64:
 								// всё хорошо
 							default:
-								fmt.Printf("%s:30 cpu must be int\n",
+								fmt.Printf("%s:30 cpu must be int\n", base)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: yamlvalid <filename>")
+		return
+	}
+	filename := os.Args[1]
+	validateYAML(filename)
+}
