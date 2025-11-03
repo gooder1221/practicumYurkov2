@@ -83,6 +83,17 @@ func validateYAML(filename string) {
 					}
 				}
 
+				// --- readinessProbe.httpGet.port ---
+				if probe, ok := container["readinessProbe"].(map[string]interface{}); ok {
+					if httpGet, ok := probe["httpGet"].(map[string]interface{}); ok {
+						if port, ok := httpGet["port"]; ok {
+							if !validatePort(port) {
+								fmt.Printf("%s:20 port value out of range\n", base)
+							}
+						}
+					}
+				}
+
 				// --- livenessProbe.httpGet.port ---
 				if probe, ok := container["livenessProbe"].(map[string]interface{}); ok {
 					if httpGet, ok := probe["httpGet"].(map[string]interface{}); ok {
